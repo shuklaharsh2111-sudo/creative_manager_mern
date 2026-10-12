@@ -6,8 +6,8 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import "../styles/all-creatives.css";
-const API_URL = "http://localhost:5000/api/creatives";
-const SERVER_URL = "http://localhost:5000";
+const API_URL = axios.get("/api/creatives");
+const SERVER_URL = "";
 function AllCreatives({ statusFilter = "all" }) {
   const [creatives, setCreatives] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
