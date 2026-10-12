@@ -14,7 +14,7 @@ function CreativeDetailsModal({
 
   if (!creative) return null;
 
-  const imageUrl = `http://localhost:5000${creative.image}`;
+  const imageUrl = creative.image;
 
   const formattedDate = new Date(
     creative.creative_date
