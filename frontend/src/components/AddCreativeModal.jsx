@@ -43,7 +43,7 @@ function AddCreativeModal({ selectedDate, onClose, onCreativeAdded }) {
       formData.append("keywords", keywords);
 
       const response = await axios.post(
-        "http://localhost:5000/api/creatives",
+        axios.get("/api/creatives"),
         formData
       );
 
