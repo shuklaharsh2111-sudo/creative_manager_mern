@@ -1,32 +1,17 @@
 const multer = require("multer");
 const path = require("path");
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/creatives/");
-  },
+const storage = multer.memoryStorage();
 
-  filename: function (req, file, cb) {
-    const uniqueName =
-      Date.now() +
-      "-" +
-      Math.round(Math.random() * 1e9) +
-      path.extname(file.originalname);
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  const extension = path.extname(file.originalname).toLowerCase();
+  const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
 
-    cb(null, uniqueName);
-  },
-});
-
-const fileFilter = function (req, file, cb) {
-  const allowedTypes = /jpeg|jpg|png|webp/;
-
-  const extension = allowedTypes.test(
-    path.extname(file.originalname).toLowerCase()
-  );
-
-  const mimeType = allowedTypes.test(file.mimetype);
-
-  if (extension && mimeType) {
+  if (
+    allowedTypes.includes(file.mimetype) &&
+    allowedExtensions.includes(extension)
+  ) {
     cb(null, true);
   } else {
     cb(new Error("Only JPG, JPEG, PNG and WEBP images are allowed."));
@@ -34,8 +19,11 @@ const fileFilter = function (req, file, cb) {
 };
 
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
 });
 
 module.exports = upload;
