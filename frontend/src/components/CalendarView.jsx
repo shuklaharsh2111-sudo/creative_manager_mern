@@ -196,7 +196,7 @@ const handleDateClick = (day) => {
         {creative && (
           <div className="calendar-creative">
             <img
-              src={`http://localhost:5000${creative.image}`}
+              src={creative.image}
               alt="Creative"
             />
             <div className="creative-overlay">
