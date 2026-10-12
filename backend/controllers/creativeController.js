@@ -10,39 +10,76 @@ const addCreative = async (req, res) => {
       seo_description,
       keywords,
     } = req.body;
+
     if (!creative_date || !caption) {
       return res.status(400).json({
         success: false,
         message: "Date and caption are required.",
       });
     }
+
     if (!req.file) {
       return res.status(400).json({
         success: false,
         message: "Creative image is required.",
       });
     }
+
+    const parsedDate = new Date(creative_date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid creative date.",
+      });
+    }
+
+    // Upload image to Cloudinary
+    const uploadedImage = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "creative-manager/creatives",
+          resource_type: "image",
+        },
+        (error, result) => {
+          if (error) {
+            return reject(error);
+          }
+
+          resolve(result);
+        }
+      );
+
+      Readable.from([req.file.buffer]).pipe(uploadStream);
+    });
+
+    // Save Cloudinary URL in MongoDB
     const creative = await Creative.create({
-      creative_date: new Date(creative_date),
-      image: `/uploads/creatives/${req.file.filename}`,
+      creative_date: parsedDate,
+      image: uploadedImage.secure_url,
       caption,
       seo: {
         title: seo_title || "",
         description: seo_description || "",
         keywords: keywords
-          ? keywords.split(",").map((keyword) => keyword.trim()).filter(Boolean)
+          ? keywords
+              .split(",")
+              .map((keyword) => keyword.trim())
+              .filter(Boolean)
           : [],
       },
       status: "pending",
       reviewedAt: null,
     });
+
     return res.status(201).json({
       success: true,
       message: "Creative added successfully.",
       creative,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Add creative error:", error);
+
     return res.status(500).json({
       success: false,
       message: "Failed to add creative.",
