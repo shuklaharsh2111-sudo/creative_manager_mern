@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
-import "../styles/sidebar.css";
+import "../styles/Sidebar.css";
 function Sidebar({
   activePage = "Dashboard",
   setActivePage,
