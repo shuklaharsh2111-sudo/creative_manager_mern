@@ -17,7 +17,7 @@ function CalendarView() {
     try {
       setLoading(true);
       const response = await axios.get(
-        "http://localhost:5000/api/creatives"
+        axios.get("/api/creatives")
       );
       if (response.data.success) {
         setCreatives(response.data.creatives);
@@ -197,6 +197,7 @@ const handleDateClick = (day) => {
           <div className="calendar-creative">
             <img
               src={creative.image}
+      
               alt="Creative"
             />
             <div className="creative-overlay">
