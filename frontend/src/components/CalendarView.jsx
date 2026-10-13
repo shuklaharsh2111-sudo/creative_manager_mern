@@ -255,24 +255,24 @@ const handleDateClick = (day) => {
           ›
         </button>
       </div>
-      <div className="creative-stats">
-        <div className="creative-stat-card total-stat">
-          <p>Total Creatives</p>
-          <h3>{totalCreatives}</h3>
-        </div>
-        <div className="creative-stat-card approved-stat">
-          <p>Approved Creatives</p>
-          <h3>{approvedCreatives}</h3>
-        </div>
-        <div className="creative-stat-card pending-stat">
-          <p>Pending Creatives</p>
-          <h3>{pendingCreatives}</h3>
-        </div>
-        <div className="creative-stat-card rejected-stat">
-          <p>Rejected Creatives</p>
-          <h3>{rejectedCreatives}</h3>
-        </div>
-      </div>
+  <div className="creative-stats">
+    <div className="creative-stat-card total-stat">
+      <p>Total Creatives</p>
+      <h3>{totalCreatives}</h3>
+    </div>
+    <div className="creative-stat-card approved-stat">
+      <p>Approved Creatives</p>
+      <h3>{approvedCreatives}</h3>
+    </div>
+    <div className="creative-stat-card pending-stat">
+      <p>Pending Creatives</p>
+      <h3>{pendingCreatives}</h3>
+    </div>
+    <div className="creative-stat-card rejected-stat">
+      <p>Rejected Creatives</p>
+      <h3>{rejectedCreatives}</h3>
+    </div>
+  </div>
       {/* Loading */}
       {loading && (
         <div className="calendar-loading">
