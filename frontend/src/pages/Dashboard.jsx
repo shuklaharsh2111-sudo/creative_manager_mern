@@ -12,7 +12,7 @@ import {
   ChartNoAxesCombined,
 } from "lucide-react";
 import "../styles/dashboard.css";
-const API_URL = axios.get("/api/creatives");
+const API_URL = "/api/creatives";
 function Dashboard({ setActivePage }) {
   const [analytics, setAnalytics] = useState(null);
   const [creatives, setCreatives] = useState([]);
@@ -27,24 +27,46 @@ function Dashboard({ setActivePage }) {
           axios.get(`${API_URL}/analytics`),
           axios.get(API_URL),
         ]);
-      const analyticsData = analyticsResponse.data?.analytics;
-      const creativesData = creativesResponse.data;
+      // Support both { analytics: {...} } and direct {...} responses.
+      const analyticsResponseData = analyticsResponse.data;
+      const analyticsData =
+        analyticsResponseData?.analytics ??
+        analyticsResponseData?.data?.analytics ??
+        analyticsResponseData?.data ??
+        analyticsResponseData;
       setAnalytics(analyticsData || {});
-      const creativeList = Array.isArray(creativesData)
-        ? creativesData
-        : Array.isArray(creativesData?.creatives)
-          ? creativesData.creatives
-          : [];
-      setCreatives(
-        [...creativeList].sort(
-          (a, b) =>
-            new Date(b.createdAt || b.creative_date || 0) -
-            new Date(a.createdAt || a.creative_date || 0)
-        )
+      // Support common API response formats.
+      const creativesResponseData = creativesResponse.data;
+      let creativeList = [];
+      if (Array.isArray(creativesResponseData)) {
+        creativeList = creativesResponseData;
+      } else if (Array.isArray(creativesResponseData?.creatives)) {
+        creativeList = creativesResponseData.creatives;
+      } else if (Array.isArray(creativesResponseData?.data)) {
+        creativeList = creativesResponseData.data;
+      } else if (
+        Array.isArray(creativesResponseData?.data?.creatives)
+      ) {
+        creativeList = creativesResponseData.data.creatives;
+      }
+      const sortedCreatives = [...creativeList].sort(
+        (a, b) =>
+          new Date(b.createdAt || b.creative_date || 0) -
+          new Date(a.createdAt || a.creative_date || 0)
       );
+      setCreatives(sortedCreatives);
+      console.log("Dashboard analytics:", analyticsData);
+      console.log("Dashboard creatives:", sortedCreatives);
     } catch (err) {
-      console.error("Dashboard loading error:", err);
-      setError("Unable to load dashboard data. Please try again.");
+      console.error(
+        "Dashboard loading error:",
+        err.response?.status,
+        err.response?.data || err.message
+      );
+      setError(
+        err.response?.data?.message ||
+          "Unable to load dashboard data. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -55,34 +77,36 @@ function Dashboard({ setActivePage }) {
   const stats = [
     {
       title: "Total Creatives",
-      value: analytics?.total ?? 0,
+      value: analytics?.total ?? analytics?.totalCreatives ?? 0,
       icon: Images,
       color: "blue",
       page: "All Creatives",
     },
     {
       title: "Pending Review",
-      value: analytics?.pending ?? 0,
+      value: analytics?.pending ?? analytics?.pendingCount ?? 0,
       icon: Clock3,
       color: "orange",
       page: "Pending Review",
     },
     {
       title: "Approved",
-      value: analytics?.approved ?? 0,
+      value: analytics?.approved ?? analytics?.approvedCount ?? 0,
       icon: CheckCircle2,
       color: "green",
       page: "Approved",
     },
     {
       title: "Rejected",
-      value: analytics?.rejected ?? 0,
+      value: analytics?.rejected ?? analytics?.rejectedCount ?? 0,
       icon: XCircle,
       color: "red",
       page: "Rejected",
     },
   ];
-  const monthlyUploads = analytics?.monthlyUploads || [];
+  const monthlyUploads = Array.isArray(analytics?.monthlyUploads)
+    ? analytics.monthlyUploads
+    : [];
   const maxMonthlyCount = Math.max(
     1,
     ...monthlyUploads.map((item) => Number(item.count) || 0)
@@ -90,27 +114,25 @@ function Dashboard({ setActivePage }) {
   const recentCreatives = creatives.slice(0, 5);
   const getImageUrl = (image) => {
     if (!image) return "";
-    if (image.startsWith("http://") || image.startsWith("https://")) {
+    if (/^https?:\/\//i.test(image)) {
       return image;
     }
-return `${
-  image.startsWith("/") ? image : `/${image}`
-}`;
+    return image.startsWith("/") ? image : `/${image}`;
   };
   const formatDate = (date) => {
     if (!date) return "—";
     const parsedDate = new Date(date);
-    if (Number.isNaN(parsedDate.getTime())) return "—";
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "—";
+    }
     return parsedDate.toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
   };
-  const getStatus = (status) => {
-    const normalizedStatus = (status || "pending").toLowerCase();
-    return normalizedStatus;
-  };
+  const getStatus = (status) =>
+    (status || "pending").toLowerCase();
   const navigateTo = (page) => {
     setActivePage?.(page);
   };
@@ -118,7 +140,10 @@ return `${
     return (
       <div className="dashboard-page">
         <div className="dashboard-message">
-          <RefreshCw size={22} className="dashboard-spinner" />
+          <RefreshCw
+            size={22}
+            className="dashboard-spinner"
+          />
           <p>Loading dashboard...</p>
         </div>
       </div>
@@ -137,6 +162,7 @@ return `${
           type="button"
           className="dashboard-refresh-btn"
           onClick={fetchDashboardData}
+          disabled={loading}
         >
           <RefreshCw size={17} />
           Refresh
@@ -145,7 +171,10 @@ return `${
       {error && (
         <div className="dashboard-error">
           <p>{error}</p>
-          <button type="button" onClick={fetchDashboardData}>
+          <button
+            type="button"
+            onClick={fetchDashboardData}
+          >
             Try Again
           </button>
         </div>
@@ -162,7 +191,9 @@ return `${
             >
               <div className="dashboard-stat-top">
                 <span>{stat.title}</span>
-                <div className={`dashboard-stat-icon ${stat.color}`}>
+                <div
+                  className={`dashboard-stat-icon ${stat.color}`}
+                >
                   <Icon size={21} />
                 </div>
               </div>
@@ -187,10 +218,10 @@ return `${
           </div>
           {monthlyUploads.length > 0 ? (
             <div className="dashboard-monthly-chart">
-              {monthlyUploads.map((item) => (
+              {monthlyUploads.map((item, index) => (
                 <div
                   className="dashboard-month-column"
-                  key={`${item.year}-${item.month}`}
+                  key={`${item.year}-${item.month}-${index}`}
                 >
                   <span className="dashboard-month-count">
                     {item.count}
@@ -308,6 +339,14 @@ return `${
                             <img
                               src={getImageUrl(creative.image)}
                               alt={creative.caption || "Creative"}
+                              onError={(event) => {
+                                console.error(
+                                  "Creative image failed:",
+                                  event.currentTarget.src
+                                );
+                                event.currentTarget.style.display =
+                                  "none";
+                              }}
                             />
                           ) : (
                             <div className="dashboard-image-placeholder">
@@ -328,7 +367,8 @@ return `${
                       </td>
                       <td>
                         {formatDate(
-                          creative.createdAt || creative.creative_date
+                          creative.createdAt ||
+                            creative.creative_date
                         )}
                       </td>
                       <td>
