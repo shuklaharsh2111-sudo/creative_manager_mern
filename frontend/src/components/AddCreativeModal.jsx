@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Upload } from "lucide-react";
 import axios from "axios";
+import "../styles/addcreativemodal.css";
 function AddCreativeModal({ selectedDate, onClose, onCreativeAdded }) {
   const [image, setImage] = useState(null);
   const [caption, setCaption] = useState("");
