@@ -49,7 +49,7 @@ function Home() {
             aria-pressed={view === "instagram"}
           >
             <Images size={17} />
-            <span>Creative View</span>
+            <span>Instagram View</span>
           </button>
           <button
             type="button"
