@@ -229,27 +229,6 @@ const handleDateClick = (day) => {
   ).length;
   return (
     <div className="calendar-container">
-      {/* Creative Statistics */}
-      {/* Monthly Creative Statistics */}
-      <div className="creative-stats">
-        <div className="creative-stat-card total-stat">
-          <p>Total Creatives</p>
-          <h3>{totalCreatives}</h3>
-        </div>
-        <div className="creative-stat-card approved-stat">
-          <p>Approved Creatives</p>
-          <h3>{approvedCreatives}</h3>
-        </div>
-        <div className="creative-stat-card pending-stat">
-          <p>Pending Creatives</p>
-          <h3>{pendingCreatives}</h3>
-        </div>
-        <div className="creative-stat-card rejected-stat">
-          <p>Rejected Creatives</p>
-          <h3>{rejectedCreatives}</h3>
-        </div>
-      </div>
-      {/* Calendar Header */}
       <div className="calendar-header">
         <button
           className="month-btn"
@@ -275,6 +254,24 @@ const handleDateClick = (day) => {
         >
           ›
         </button>
+      </div>
+      <div className="creative-stats">
+        <div className="creative-stat-card total-stat">
+          <p>Total Creatives</p>
+          <h3>{totalCreatives}</h3>
+        </div>
+        <div className="creative-stat-card approved-stat">
+          <p>Approved Creatives</p>
+          <h3>{approvedCreatives}</h3>
+        </div>
+        <div className="creative-stat-card pending-stat">
+          <p>Pending Creatives</p>
+          <h3>{pendingCreatives}</h3>
+        </div>
+        <div className="creative-stat-card rejected-stat">
+          <p>Rejected Creatives</p>
+          <h3>{rejectedCreatives}</h3>
+        </div>
       </div>
       {/* Loading */}
       {loading && (
