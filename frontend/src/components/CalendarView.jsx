@@ -16,16 +16,18 @@ function CalendarView() {
   const fetchCreatives = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        axios.get("/api/creatives")
-      );
+      const response = await axios.get("/api/creatives");
       if (response.data.success) {
-        setCreatives(response.data.creatives);
+        setCreatives(response.data.creatives || []);
+      } else {
+        setCreatives([]);
+        console.error("Failed to fetch creatives:", response.data.message);
       }
     } catch (error) {
       console.error(
         "Failed to fetch creatives:",
-        error
+        error.response?.status,
+        error.response?.data || error.message
       );
     } finally {
       setLoading(false);
@@ -96,25 +98,18 @@ function CalendarView() {
     setSelectedDate(null);
   };
   // Select date
-
 const handleDateClick = (day) => {
   const clickedDate = new Date(year, month, day);
   setSelectedDate(clickedDate);
-
   const creative = getCreativeForDate(clickedDate);
-
   if (creative) {
-  
     setSelectedCreative(creative);
     setShowModal(false);
   } else {
-  
     setSelectedCreative(null);
     setShowModal(true);
   }
 };
-
-
   // After adding creative
   const handleCreativeAdded = (newCreative) => {
     setCreatives((previous) => [
@@ -197,7 +192,6 @@ const handleDateClick = (day) => {
           <div className="calendar-creative">
             <img
               src={creative.image}
-      
               alt="Creative"
             />
             <div className="creative-overlay">
@@ -213,63 +207,48 @@ const handleDateClick = (day) => {
     );
   }
   const currentSelectedCreative = getCreativeForDate(selectedDate);
-
   // Filter creatives for the currently selected month
   const monthlyCreatives = creatives.filter((creative) => {
     if (!creative.creative_date) return false;
-
     const creativeDate = new Date(creative.creative_date);
-
     return (
       creativeDate.getMonth() === month &&
       creativeDate.getFullYear() === year
     );
   });
-
   // Month-wise Creative Statistics
   const totalCreatives = monthlyCreatives.length;
-
   const approvedCreatives = monthlyCreatives.filter(
     (creative) => creative.status === "approved"
   ).length;
-
   const pendingCreatives = monthlyCreatives.filter(
     (creative) => creative.status === "pending"
   ).length;
-
   const rejectedCreatives = monthlyCreatives.filter(
     (creative) => creative.status === "rejected"
   ).length;
-
   return (
     <div className="calendar-container">
-      
       {/* Creative Statistics */}
-
       {/* Monthly Creative Statistics */}
       <div className="creative-stats">
         <div className="creative-stat-card total-stat">
           <p>Total Creatives</p>
           <h3>{totalCreatives}</h3>
         </div>
-
         <div className="creative-stat-card approved-stat">
           <p>Approved Creatives</p>
           <h3>{approvedCreatives}</h3>
         </div>
-
         <div className="creative-stat-card pending-stat">
           <p>Pending Creatives</p>
           <h3>{pendingCreatives}</h3>
         </div>
-
         <div className="creative-stat-card rejected-stat">
           <p>Rejected Creatives</p>
           <h3>{rejectedCreatives}</h3>
         </div>
       </div>
-
-
       {/* Calendar Header */}
       <div className="calendar-header">
         <button
@@ -320,7 +299,6 @@ const handleDateClick = (day) => {
       <div className="calendar-grid">
         {calendarDays}
       </div>
-
       {/* Add Creative Modal */}
       {showModal && selectedDate && (
         <AddCreativeModal
