@@ -1,0 +1,279 @@
+.app {
+  min-height: 100vh;
+  background: #090b10;
+  color: #f3f4f6;
+  position: relative;
+  overflow-x: hidden;
+}
+.app::before,
+.app::after {
+  content: '';
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  border-radius: 50%;
+  filter: blur(120px);
+  z-index: 0;
+  pointer-events: none;
+}
+.app::before {
+  top: -50px;
+  left: 10%;
+  background: rgba(139, 92, 246, 0.15);
+}
+.app::after {
+  bottom: 10%;
+  right: 5%;
+  background: rgba(59, 130, 246, 0.12);
+}
+.topbar,
+.platform-section,
+.content {
+  position: relative;
+  z-index: 1;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 28px;
+  background: rgba(18, 22, 36, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(168, 85, 247, 0.3);
+}
+.brand-text h1 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 750;
+  color: #ffffff;
+}
+.brand-text p {
+  margin: 5px 0 0;
+  color: #9ca3af;
+  font-size: 13px;
+}
+.view-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+}
+.view-switch button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.view-switch button:hover {
+  color: #f3f4f6;
+}
+.view-switch button.active {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+.platform-section {
+  padding: 22px 28px 18px;
+  background: rgba(18, 22, 36, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.platform-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.platform-heading h2,
+.selected-platform-heading h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.platform-heading p,
+.selected-platform-heading p {
+  margin: 5px 0 0;
+  color: #9ca3af;
+  font-size: 13px;
+}
+.platform-count {
+  padding: 6px 10px;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 20px;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.1);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.platform-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+}
+.platform-tab {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-width: 112px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+.platform-tab:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(139, 92, 246, 0.1);
+  color: #f3f4f6;
+  transform: translateY(-1px);
+}
+.platform-tab.active {
+  border-color: #a855f7;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(59, 130, 246, 0.2) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
+}
+.platform-tab:focus-visible,
+.view-switch button:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 3px;
+}
+.content {
+  padding: 24px 28px;
+  background: rgba(18, 22, 36, 0.5);
+}
+.selected-platform-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.selected-platform-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  background: rgba(139, 92, 246, 0.15);
+  color: #a855f7;
+  box-shadow: inset 0 0 12px rgba(139, 92, 246, 0.2);
+}
+.selected-platform-icon.platform-instagram {
+  color: #e1306c;
+  background: rgba(225, 48, 108, 0.15);
+  border-color: rgba(225, 48, 108, 0.3);
+}
+.selected-platform-icon.platform-facebook {
+  color: #1877f2;
+  background: rgba(24, 119, 242, 0.15);
+  border-color: rgba(24, 119, 242, 0.3);
+}
+.selected-platform-icon.platform-linkedin {
+  color: #0a66c2;
+  background: rgba(10, 102, 194, 0.15);
+  border-color: rgba(10, 102, 194, 0.3);
+}
+.selected-platform-icon.platform-youtube {
+  color: #ff0033;
+  background: rgba(255, 0, 51, 0.15);
+  border-color: rgba(255, 0, 51, 0.3);
+}
+.selected-platform-icon.platform-pinterest {
+  color: #bd081c;
+  background: rgba(189, 8, 28, 0.15);
+  border-color: rgba(189, 8, 28, 0.3);
+}
+.selected-platform-icon.platform-x {
+  color: #f3f4f6;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.selected-platform-icon.platform-threads {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+@media (max-width: 768px) {
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 18px 16px;
+  }
+  .view-switch {
+    width: 100%;
+  }
+  .view-switch button {
+    flex: 1;
+    padding: 10px 8px;
+  }
+  .platform-section {
+    padding: 18px 16px 12px;
+  }
+  .platform-tabs {
+    gap: 8px;
+  }
+  .platform-tab {
+    min-width: 104px;
+    padding: 11px 13px;
+  }
+  .content {
+    padding: 20px 16px;
+  }
+}
+@media (max-width: 380px) {
+  .brand-text h1 {
+    font-size: 18px;
+  }
+  .view-switch button {
+    gap: 5px;
+    font-size: 12px;
+  }
+}
