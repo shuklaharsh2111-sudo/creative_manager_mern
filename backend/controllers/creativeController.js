@@ -1,6 +1,5 @@
 const Creative = require("../models/Creative");
 const cloudinary = require("../config/cloudinary");
-const { Readable } = require("stream");
 const addCreative = async (req, res) => {
   try {
     const {
@@ -10,7 +9,6 @@ const addCreative = async (req, res) => {
       seo_description,
       keywords,
     } = req.body;
-
     if (!creative_date || !caption) {
       return res.status(400).json({
         success: false,
@@ -18,54 +16,40 @@ const addCreative = async (req, res) => {
       });
     }
 
-    if (!req.file) {
+    if (!req.file || !req.file.buffer) {
       return res.status(400).json({
         success: false,
         message: "Creative image is required.",
       });
     }
 
-    const parsedDate = new Date(creative_date);
-
-    if (Number.isNaN(parsedDate.getTime())) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide a valid creative date.",
-      });
-    }
-
-    // Upload image to Cloudinary
-    const uploadedImage = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
         {
           folder: "creative-manager/creatives",
           resource_type: "image",
         },
         (error, result) => {
-          if (error) {
-            return reject(error);
+          if (error) return reject(error);
+          if (!result?.secure_url) {
+            return reject(new Error("Cloudinary did not return an image URL."));
           }
-
           resolve(result);
         }
       );
-
-      Readable.from([req.file.buffer]).pipe(uploadStream);
+    
+      stream.end(req.file.buffer);
     });
 
-    // Save Cloudinary URL in MongoDB
     const creative = await Creative.create({
-      creative_date: parsedDate,
-      image: uploadedImage.secure_url,
+      creative_date: new Date(creative_date),
+      image: uploadResult.secure_url,
       caption,
       seo: {
         title: seo_title || "",
         description: seo_description || "",
         keywords: keywords
-          ? keywords
-              .split(",")
-              .map((keyword) => keyword.trim())
-              .filter(Boolean)
+          ? keywords.split(",").map((keyword) => keyword.trim()).filter(Boolean)
           : [],
       },
       status: "pending",
@@ -78,8 +62,7 @@ const addCreative = async (req, res) => {
       creative,
     });
   } catch (error) {
-    console.error("Add creative error:", error);
-
+    console.error(error);
     return res.status(500).json({
       success: false,
       message: "Failed to add creative.",
