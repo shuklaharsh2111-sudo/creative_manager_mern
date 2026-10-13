@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import axios from "axios";
-
 function CreativeDetailsModal({
   creative,
   onClose,
@@ -11,11 +10,8 @@ function CreativeDetailsModal({
   const [error, setError] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
-
   if (!creative) return null;
-
   const imageUrl = creative.image;
-
   const formattedDate = new Date(
     creative.creative_date
   ).toLocaleDateString("en-IN", {
@@ -23,48 +19,45 @@ function CreativeDetailsModal({
     month: "long",
     year: "numeric",
   });
-
-  const handleStatusUpdate = async (status) => {
-    if (
-      status === "rejected" &&
-      !rejectionReason.trim()
-    ) {
-      setError("Please enter a reason for rejecting.");
-      return;
+const handleStatusUpdate = async (status) => {
+  if (status === "rejected" && !rejectionReason.trim()) {
+    setError("Please enter a reason for rejecting.");
+    return;
+  }
+  try {
+    setUpdating(true);
+    setError("");
+    const payload = { status };
+    if (status === "rejected") {
+      payload.rejectionReason = rejectionReason.trim();
     }
-
-    try {
-      setUpdating(true);
+    // Correct API request
+    const response = await axios.patch(
+      `/api/creatives/${creative._id}/status`,
+      payload
+    );
+    if (response.data.success) {
+      onStatusUpdated(response.data.creative);
+      setShowRejectForm(false);
+      setRejectionReason("");
       setError("");
-
-      const payload = { status };
-
-      if (status === "rejected") {
-        payload.rejectionReason = rejectionReason.trim();
-      }
-
-      const response = await axios.patch(
-        axios.get(`/api/creatives/${creative._id}/status`),
-        payload
-      );
-
-      if (response.data.success) {
-        onStatusUpdated(response.data.creative);
-        setShowRejectForm(false);
-        setRejectionReason("");
-      }
-    } catch (err) {
-      console.error(err);
-
-      setError(
-        err.response?.data?.message ||
-          "Failed to update status."
-      );
-    } finally {
-      setUpdating(false);
+    } else {
+      setError(response.data.message || "Failed to update status.");
     }
-  };
-
+  } catch (err) {
+    console.error(
+      "Status update error:",
+      err.response?.status,
+      err.response?.data || err.message
+    );
+    setError(
+      err.response?.data?.message ||
+      "Failed to update status."
+    );
+  } finally {
+    setUpdating(false);
+  }
+};
   return (
     <div
       className="modal-overlay"
@@ -80,7 +73,6 @@ function CreativeDetailsModal({
             <h2>Creative Details</h2>
             <p>{formattedDate}</p>
           </div>
-
           <button
             className="close-btn"
             onClick={onClose}
@@ -90,7 +82,6 @@ function CreativeDetailsModal({
             <X size={20} />
           </button>
         </div>
-
         {/* Content */}
         <div className="details-modal-content">
           {/* Image */}
@@ -101,7 +92,6 @@ function CreativeDetailsModal({
               className="details-image"
             />
           </div>
-
           {/* Details */}
           <div className="creative-details-info">
             <div className="detail-item">
@@ -112,7 +102,6 @@ function CreativeDetailsModal({
                 {creative.caption || "No caption available."}
               </p>
             </div>
-
             <div className="detail-item">
               <span className="detail-label">
                 SEO Title
@@ -121,7 +110,6 @@ function CreativeDetailsModal({
                 {creative.seo?.title || "No SEO title added."}
               </p>
             </div>
-
             <div className="detail-item">
               <span className="detail-label">
                 SEO Description
@@ -131,12 +119,10 @@ function CreativeDetailsModal({
                   "No SEO description added."}
               </p>
             </div>
-
             <div className="detail-item">
               <span className="detail-label">
                 SEO Keywords
               </span>
-
               <div className="keyword-list">
                 {creative.seo?.keywords?.length > 0 ? (
                   creative.seo.keywords.map(
@@ -156,20 +142,17 @@ function CreativeDetailsModal({
                 )}
               </div>
             </div>
-
             {/* Status */}
             <div className="detail-item">
               <span className="detail-label">
                 Status
               </span>
-
               <span
                 className={`details-status ${creative.status}`}
               >
                 {creative.status}
               </span>
             </div>
-
             {/* Saved rejection reason */}
             {creative.status === "rejected" &&
               creative.rejectionReason && (
@@ -177,20 +160,17 @@ function CreativeDetailsModal({
                   <span className="detail-label">
                     Reason for Rejecting
                   </span>
-
                   <p className="detail-value">
                     {creative.rejectionReason}
                   </p>
                 </div>
               )}
-
             {/* Error */}
             {error && (
               <div className="form-error">
                 {error}
               </div>
             )}
-
             {/* Status Actions */}
             {creative.status === "pending" && (
               <div className="status-actions">
@@ -204,7 +184,6 @@ function CreativeDetailsModal({
                 >
                   {updating ? "Updating..." : "Approve"}
                 </button>
-
                 <button
                   type="button"
                   className="status-btn reject-btn"
@@ -218,7 +197,6 @@ function CreativeDetailsModal({
                 </button>
               </div>
             )}
-
             {/* Rejection Form */}
             {creative.status === "pending" &&
               showRejectForm && (
@@ -226,7 +204,6 @@ function CreativeDetailsModal({
                   <label htmlFor="rejectionReason">
                     Reason for Rejecting
                   </label>
-
                   <textarea
                     id="rejectionReason"
                     name="rejectionReason"
@@ -241,7 +218,6 @@ function CreativeDetailsModal({
                     required
                     disabled={updating}
                   />
-
                   <div className="reject-form-actions">
                     <button
                       type="button"
@@ -255,7 +231,6 @@ function CreativeDetailsModal({
                         ? "Rejecting..."
                         : "Confirm Rejection"}
                     </button>
-
                     <button
                       type="button"
                       className="status-btn cancel-reject-btn"
@@ -271,7 +246,6 @@ function CreativeDetailsModal({
                   </div>
                 </div>
               )}
-
             {/* Upload Creative */}
             {creative.status === "approved" && (
               <div className="upload-creative-section">
@@ -292,5 +266,4 @@ function CreativeDetailsModal({
     </div>
   );
 }
-
 export default CreativeDetailsModal;
