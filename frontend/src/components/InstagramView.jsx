@@ -5,7 +5,7 @@ import CreativeDetailsModal from "./CreativeDetailsModal";
 import AddCreativeModal from "./AddCreativeModal";
 import "../styles/instagram.css";
 
-const API_URL = "http://localhost:5000/api/creatives";
+const API_URL = axios.get("/api/creatives");
 
 function InstagramView() {
   const [creatives, setCreatives] = useState([]);
@@ -169,8 +169,7 @@ function InstagramView() {
     ) {
       return image;
     }
-
-    return `http://localhost:5000${
+    return `${
       image.startsWith("/") ? image : `/${image}`
     }`;
   };
