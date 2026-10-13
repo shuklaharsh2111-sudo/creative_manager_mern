@@ -44,7 +44,7 @@ function CreativeDetailsModal({
       }
 
       const response = await axios.patch(
-        `http://localhost:5000/api/creatives/${creative._id}/status`,
+        axios.get(`/api/creatives/${creative._id}/status`),
         payload
       );
 
