@@ -9,7 +9,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import "../styles/analytics.css";
-const API_URL = axios.get("/api/creatives/analytics");
+const API_URL = "/api/creatives/analytics";
 function Analytics() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,10 +19,26 @@ function Analytics() {
       setLoading(true);
       setError("");
       const response = await axios.get(API_URL);
-      setAnalytics(response.data.analytics);
+      const data = response.data;
+      // Supports both nested and direct analytics responses.
+      const analyticsData =
+        data?.analytics ??
+        data?.data?.analytics ??
+        data?.data ??
+        data;
+      setAnalytics(analyticsData || {});
+      console.log("Analytics API response:", data);
+      console.log("Analytics data:", analyticsData);
     } catch (err) {
-      console.error("Analytics fetch error:", err);
-      setError("Analytics load nahi ho paaya. Backend aur API route check karo.");
+      console.error(
+        "Analytics fetch error:",
+        err.response?.status,
+        err.response?.data || err.message
+      );
+      setError(
+        err.response?.data?.message ||
+          "Analytics load nahi ho paaya. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -31,41 +47,76 @@ function Analytics() {
     fetchAnalytics();
   }, []);
   if (loading) {
-    return <div className="analytics-message">Loading analytics...</div>;
+    return (
+      <div className="analytics-message">
+        Loading analytics...
+      </div>
+    );
   }
   if (error) {
     return (
       <div className="analytics-message analytics-error">
         <p>{error}</p>
-        <button onClick={fetchAnalytics}>Try Again</button>
+        <button
+          type="button"
+          onClick={fetchAnalytics}
+          disabled={loading}
+        >
+          Try Again
+        </button>
       </div>
     );
   }
-  const total = analytics?.total ?? 0;
-  const pending = analytics?.pending ?? 0;
-  const approved = analytics?.approved ?? 0;
-  const rejected = analytics?.rejected ?? 0;
+  const total = Number(analytics?.total ?? 0);
+  const pending = Number(analytics?.pending ?? 0);
+  const approved = Number(analytics?.approved ?? 0);
+  const rejected = Number(analytics?.rejected ?? 0);
   const approvalRate =
-    total > 0 ? Math.round((approved / total) * 100) : 0;
+    total > 0
+      ? Math.round((approved / total) * 100)
+      : 0;
   const statusData = [
-    { label: "Approved", value: approved, className: "approved" },
-    { label: "Pending", value: pending, className: "pending" },
-    { label: "Rejected", value: rejected, className: "rejected" },
+    {
+      label: "Approved",
+      value: approved,
+      className: "approved",
+    },
+    {
+      label: "Pending",
+      value: pending,
+      className: "pending",
+    },
+    {
+      label: "Rejected",
+      value: rejected,
+      className: "rejected",
+    },
   ];
-const monthlyUploads = analytics?.monthlyUploads || [];
-const maxMonthlyCount = Math.max(
-  1,
-  ...monthlyUploads.map((item) => item.count)
-);
+  const monthlyUploads = Array.isArray(
+    analytics?.monthlyUploads
+  )
+    ? analytics.monthlyUploads
+    : [];
+  const maxMonthlyCount = Math.max(
+    1,
+    ...monthlyUploads.map(
+      (item) => Number(item.count) || 0
+    )
+  );
   return (
     <section className="analytics-page">
       <header className="analytics-header">
         <div>
-          <p className="analytics-eyebrow">PERFORMANCE OVERVIEW</p>
+          <p className="analytics-eyebrow">
+            PERFORMANCE OVERVIEW
+          </p>
           <h1>Analytics</h1>
-          <p>Track creative uploads and review performance.</p>
+          <p>
+            Track creative uploads and review performance.
+          </p>
         </div>
         <button
+          type="button"
           className="analytics-refresh"
           onClick={fetchAnalytics}
           disabled={loading}
@@ -113,52 +164,71 @@ const maxMonthlyCount = Math.max(
           <div className="analytics-panel-heading">
             <div>
               <h3>Monthly Uploads</h3>
-              <p>Daily creative uploads for the selected period</p>
+              <p>Creative uploads over the selected period</p>
             </div>
             <TrendingUp size={21} />
           </div>
-
+          {monthlyUploads.length > 0 ? (
             <div className="monthly-chart">
-              {monthlyUploads.map((item) => {
-                const monthKey = `${item.year}-${item.month}`;
-            
+              {monthlyUploads.map((item, index) => {
+                const count = Number(item.count) || 0;
+                const monthKey =
+                  `${item.year}-${item.month}-${index}`;
                 return (
-                  <div className="monthly-chart-column" key={monthKey}>
-                    <span className="monthly-chart-count">{item.count}</span>
-                
+                  <div
+                    className="monthly-chart-column"
+                    key={monthKey}
+                  >
+                    <span className="monthly-chart-count">
+                      {count}
+                    </span>
                     <div className="monthly-bar-track">
                       <div
                         className="monthly-bar"
                         style={{
-                          height: `${(item.count / maxMonthlyCount) * 100}%`,
+                          height: `${
+                            (count / maxMonthlyCount) * 100
+                          }%`,
                         }}
-                        title={`${item.month} ${item.year}: ${item.count} creatives`}
+                        title={`${item.month} ${item.year}: ${count} creatives`}
                       />
                     </div>
-                    
                     <span className="monthly-chart-label">
                       {item.month}
                     </span>
-                    <span className="monthly-chart-year">{item.year}</span>
+                    <span className="monthly-chart-year">
+                      {item.year}
+                    </span>
                   </div>
                 );
               })}
             </div>
-
+          ) : (
+            <div className="analytics-message">
+              No monthly upload data available yet.
+            </div>
+          )}
         </article>
         <article className="analytics-panel">
           <div className="analytics-panel-heading">
             <div>
-              <h3>Status Distribution</h3>a
+              <h3>Status Distribution</h3>
               <p>Breakdown of all creatives</p>
             </div>
           </div>
           <div className="status-chart">
             {statusData.map((item) => {
               const percentage =
-                total > 0 ? Math.round((item.value / total) * 100) : 0;
+                total > 0
+                  ? Math.round(
+                      (item.value / total) * 100
+                    )
+                  : 0;
               return (
-                <div className="status-chart-item" key={item.label}>
+                <div
+                  className="status-chart-item"
+                  key={item.label}
+                >
                   <div className="status-chart-label-row">
                     <span>
                       <span
@@ -173,7 +243,9 @@ const maxMonthlyCount = Math.max(
                   <div className="status-track">
                     <div
                       className={`status-fill ${item.className}`}
-                      style={{ width: `${percentage}%` }}
+                      style={{
+                        width: `${percentage}%`,
+                      }}
                     />
                   </div>
                 </div>
