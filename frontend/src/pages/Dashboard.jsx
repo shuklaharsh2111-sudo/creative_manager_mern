@@ -12,7 +12,7 @@ import {
   ChartNoAxesCombined,
 } from "lucide-react";
 import "../styles/dashboard.css";
-const API_URL = "http://localhost:5000/api/creatives";
+const API_URL = axios.get("/api/creatives");
 function Dashboard({ setActivePage }) {
   const [analytics, setAnalytics] = useState(null);
   const [creatives, setCreatives] = useState([]);
@@ -93,9 +93,9 @@ function Dashboard({ setActivePage }) {
     if (image.startsWith("http://") || image.startsWith("https://")) {
       return image;
     }
-    return `http://localhost:5000${
-      image.startsWith("/") ? image : `/${image}`
-    }`;
+return `${
+  image.startsWith("/") ? image : `/${image}`
+}`;
   };
   const formatDate = (date) => {
     if (!date) return "—";
