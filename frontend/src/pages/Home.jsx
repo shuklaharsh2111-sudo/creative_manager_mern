@@ -8,10 +8,7 @@ import {
   FaGoogle,
 } from "react-icons/fa";
 import { FaXTwitter, FaThreads } from "react-icons/fa6";
-import {
-  CalendarDays,
-  Images,
-} from "lucide-react";
+import { CalendarDays, Images } from "lucide-react";
 import CalendarView from "../components/CalendarView";
 import InstagramView from "../components/InstagramView";
 import "../styles/home.css";
@@ -31,6 +28,7 @@ function Home() {
   const selectedPlatform = PLATFORMS.find(
     (item) => item.id === platform
   );
+  const SelectedPlatformIcon = selectedPlatform?.Icon;
   return (
     <div className="app">
       <header className="topbar">
@@ -48,6 +46,7 @@ function Home() {
             type="button"
             className={view === "instagram" ? "active" : ""}
             onClick={() => setView("instagram")}
+            aria-pressed={view === "instagram"}
           >
             <Images size={17} />
             <span>Creative View</span>
@@ -56,6 +55,7 @@ function Home() {
             type="button"
             className={view === "calendar" ? "active" : ""}
             onClick={() => setView("calendar")}
+            aria-pressed={view === "calendar"}
           >
             <CalendarDays size={17} />
             <span>Calendar View</span>
@@ -94,9 +94,11 @@ function Home() {
       </section>
       <main className="content">
         <div className="selected-platform-heading">
-          <div className={`selected-platform-icon platform-${platform}`}>
-            {selectedPlatform && (
-              <selectedPlatform.Icon size={23} />
+          <div
+            className={`selected-platform-icon platform-${platform}`}
+          >
+            {SelectedPlatformIcon && (
+              <SelectedPlatformIcon size={23} />
             )}
           </div>
           <div>
