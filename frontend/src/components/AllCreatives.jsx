@@ -6,8 +6,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import "../styles/all-creatives.css";
-const API_URL = axios.get("/api/creatives");
-const SERVER_URL = "";
+const API_URL = "/api/creatives";
 function AllCreatives({ statusFilter = "all" }) {
   const [creatives, setCreatives] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,18 +19,28 @@ function AllCreatives({ statusFilter = "all" }) {
       setError("");
       const response = await axios.get(API_URL);
       const data = response.data;
-      const list = Array.isArray(data)
-        ? data
-        : Array.isArray(data.creatives)
-        ? data.creatives
-        : Array.isArray(data.data)
-        ? data.data
-        : [];
+      let list = [];
+      if (Array.isArray(data)) {
+        list = data;
+      } else if (Array.isArray(data?.creatives)) {
+        list = data.creatives;
+      } else if (Array.isArray(data?.data)) {
+        list = data.data;
+      } else if (Array.isArray(data?.data?.creatives)) {
+        list = data.data.creatives;
+      }
       setCreatives(list);
+      console.log("All Creatives API response:", data);
+      console.log("Creatives loaded:", list.length);
     } catch (err) {
-      console.error("Failed to fetch creatives:", err);
+      console.error(
+        "Failed to fetch creatives:",
+        err.response?.status,
+        err.response?.data || err.message
+      );
       setError(
-        "Creatives load nahi ho paaye. Backend check karke retry karo."
+        err.response?.data?.message ||
+          "Creatives load nahi ho paaye. Please try again."
       );
     } finally {
       setLoading(false);
@@ -42,16 +51,21 @@ function AllCreatives({ statusFilter = "all" }) {
   }, []);
   const getImageUrl = (image) => {
     if (!image) return "";
-    if (image.startsWith("http://") || image.startsWith("https://")) {
+    // Cloudinary and other hosted image URLs
+    if (/^https?:\/\//i.test(image)) {
       return image;
     }
-    return `${SERVER_URL}/${image.replace(/^\/+/, "")}`;
+    // Relative paths for any legacy images
+    return image.startsWith("/") ? image : `/${image}`;
   };
   const filteredCreatives = creatives.filter((creative) => {
-    const status = String(creative.status || "pending").toLowerCase();
+    const status = String(
+      creative.status || "pending"
+    ).toLowerCase();
+    const normalizedStatusFilter = statusFilter.toLowerCase();
     const matchesStatus =
-      statusFilter !== "all"
-        ? status === statusFilter.toLowerCase()
+      normalizedStatusFilter !== "all"
+        ? status === normalizedStatusFilter
         : selectedStatus === "all" || status === selectedStatus;
     const searchText = [
       creative.caption,
@@ -65,22 +79,25 @@ function AllCreatives({ statusFilter = "all" }) {
       .join(" ")
       .toLowerCase();
     const matchesSearch = searchText.includes(
-      searchTerm.toLowerCase()
+      searchTerm.trim().toLowerCase()
     );
     return matchesStatus && matchesSearch;
   });
+  const normalizedFilter = statusFilter.toLowerCase();
   const pageTitle =
-    statusFilter === "pending"
+    normalizedFilter === "pending"
       ? "Pending Review"
-      : statusFilter === "rejected"
-      ? "Rejected Creatives"
-      : statusFilter === "approved"
-      ? "Approved Creatives"
-      : "All Creatives";
+      : normalizedFilter === "rejected"
+        ? "Rejected Creatives"
+        : normalizedFilter === "approved"
+          ? "Approved Creatives"
+          : "All Creatives";
   const formatDate = (date) => {
     if (!date) return "No date";
     const parsedDate = new Date(date);
-    if (Number.isNaN(parsedDate.getTime())) return "Invalid date";
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "Invalid date";
+    }
     return parsedDate.toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
@@ -91,7 +108,9 @@ function AllCreatives({ statusFilter = "all" }) {
     <section className="all-creatives-page">
       <div className="all-creatives-header">
         <div>
-          <p className="all-creatives-eyebrow">CONTENT MANAGEMENT</p>
+          <p className="all-creatives-eyebrow">
+            CONTENT MANAGEMENT
+          </p>
           <h1>{pageTitle}</h1>
           <p className="all-creatives-subtitle">
             View and manage your {pageTitle.toLowerCase()}.
@@ -117,7 +136,7 @@ function AllCreatives({ statusFilter = "all" }) {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        {statusFilter === "all" && (
+        {normalizedFilter === "all" && (
           <select
             className="creatives-status-filter"
             value={selectedStatus}
@@ -137,11 +156,16 @@ function AllCreatives({ statusFilter = "all" }) {
         </div>
       )}
       {loading ? (
-        <div className="creatives-message">Loading creatives...</div>
+        <div className="creatives-message">
+          Loading creatives...
+        </div>
       ) : error ? (
         <div className="creatives-message creatives-error">
           <p>{error}</p>
-          <button type="button" onClick={fetchCreatives}>
+          <button
+            type="button"
+            onClick={fetchCreatives}
+          >
             Try Again
           </button>
         </div>
@@ -157,14 +181,14 @@ function AllCreatives({ statusFilter = "all" }) {
         </div>
       ) : (
         <div className="all-creatives-grid">
-          {filteredCreatives.map((creative) => {
+          {filteredCreatives.map((creative, index) => {
             const creativeStatus = String(
               creative.status || "pending"
             ).toLowerCase();
             return (
               <article
                 className="all-creative-card"
-                key={creative._id}
+                key={creative._id || creative.id || index}
               >
                 <div className="all-creative-image">
                   {creative.image ? (
@@ -172,6 +196,12 @@ function AllCreatives({ statusFilter = "all" }) {
                       src={getImageUrl(creative.image)}
                       alt={creative.caption || "Creative"}
                       loading="lazy"
+                      onError={(event) => {
+                        console.error(
+                          "Creative image failed:",
+                          event.currentTarget.src
+                        );
+                      }}
                     />
                   ) : (
                     <div className="creative-image-placeholder">
@@ -181,14 +211,20 @@ function AllCreatives({ statusFilter = "all" }) {
                   <span
                     className={`creative-status-badge ${creativeStatus}`}
                   >
-                    {creative.status || "pending"}
+                    {creativeStatus}
                   </span>
                 </div>
                 <div className="all-creative-content">
                   <p className="all-creative-date">
-                    {formatDate(creative.creative_date)}
+                    {formatDate(
+                      creative.creative_date || creative.createdAt
+                    )}
                   </p>
-                  <h3>{creative.seo?.title || "Untitled Creative"}</h3>
+                  <h3>
+                    {creative.seo?.title ||
+                      creative.seoTitle ||
+                      "Untitled Creative"}
+                  </h3>
                   <p className="all-creative-caption">
                     {creative.caption || "No caption available"}
                   </p>
@@ -200,11 +236,13 @@ function AllCreatives({ statusFilter = "all" }) {
                   {Array.isArray(creative.seo?.keywords) &&
                     creative.seo.keywords.length > 0 && (
                       <div className="all-creative-keywords">
-                        {creative.seo.keywords.map((keyword, index) => (
-                          <span key={`${keyword}-${index}`}>
-                            {keyword}
-                          </span>
-                        ))}
+                        {creative.seo.keywords.map(
+                          (keyword, index) => (
+                            <span key={`${keyword}-${index}`}>
+                              {keyword}
+                            </span>
+                          )
+                        )}
                       </div>
                     )}
                   {creativeStatus === "rejected" &&
