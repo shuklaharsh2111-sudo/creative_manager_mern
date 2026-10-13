@@ -9,7 +9,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import "../styles/analytics.css";
-const API_URL = "http://localhost:5000/api/creatives/analytics";
+const API_URL = axios.get("/api/creatives/analytics");
 function Analytics() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
